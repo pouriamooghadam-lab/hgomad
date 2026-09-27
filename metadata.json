@@ -1,0 +1,6 @@
+{
+  "name": "JSERVICE - سامانه جامع خدمات پس از فروش و گارانتی",
+  "description": "سامانه یکپارچه مدیریت خدمات پس از فروش، گارانتی، انبار قطعات، گردش کار تعمیرات و مالی با امکان نصب مستقیم روی هاست اشتراکی",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

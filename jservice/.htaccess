@@ -1,0 +1,26 @@
+# JSERVICE - Root .htaccess for Shared Hosting (cPanel / DirectAdmin)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Redirect directly to public/ directory if accessing root
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteCond %{REQUEST_URI} !^/install\.php
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# Prevent directory listings
+Options -Indexes
+
+# Protect sensitive environment and system files
+<FilesMatch "^\.(env|git|lock)|composer\.(json|lock)|README\.md|LICENSE">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Security Headers
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
