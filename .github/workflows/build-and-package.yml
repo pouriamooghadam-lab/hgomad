@@ -11,11 +11,11 @@ jobs:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
         
-      - name: 🟢 Setup Node.js (Version 22 LTS)
+      - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: '20' 
+          # خط cache حذف شد تا ارور package-lock.json برطرف شود
           
       - name: 📦 Install Dependencies
         run: npm install
@@ -29,12 +29,12 @@ jobs:
           mkdir -p release_package/public_html
           mkdir -p release_package/public_html/api
           
-          # کپی فایل‌های بیلد شده ری‌اکت (اگر پوشه dist وجود داشته باشد)
+          # کپی فایل‌های بیلد شده ری‌اکت
           if [ -d "dist" ]; then
             cp -r dist/* release_package/public_html/
             echo "✅ Frontend built and copied successfully."
           else
-            echo "❌ ERROR: dist folder not found! Build might have failed."
+            echo "❌ ERROR: dist folder not found! Build failed."
             ls -la
             exit 1
           fi
@@ -43,8 +43,6 @@ jobs:
           if [ -d "jservice" ]; then
             cp -r jservice/* release_package/public_html/api/
             echo "✅ Backend files copied successfully."
-          else
-            echo "⚠️ WARNING: jservice folder not found."
           fi
           
           # پاکسازی فایل‌های غیرضروری از پوشه API
