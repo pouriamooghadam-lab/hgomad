@@ -1,0 +1,54 @@
+name: Build and Package for Shared Host
+
+# این دستور باعث می‌شود هر وقت بخواهید دستی اجرا شود، یا هر وقت تگ جدیدی مثل v1.0 بزنید
+on:
+  workflow_dispatch: 
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-zip:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: 📦 Install & Build Frontend
+        run: |
+          npm install
+          npm run build
+          
+      - name: 🗂️ Prepare Deployment Structure
+        run: |
+          # ساخت ساختار دقیق پوشه‌ها برای هاست اشتراکی
+          mkdir -p release_package/public_html
+          mkdir -p release_package/public_html/api
+          
+          # ۱. کپی فایل‌های بیلد شده React (فرانت‌اند) به ریشه
+          cp -r dist/* release_package/public_html/
+          
+          # ۲. کپی فایل‌های PHP و دیتابیس (بک‌اند) به پوشه api
+          cp -r jservice/* release_package/public_html/api/
+          
+          # ۳. حذف فایل‌های اضافی که در هاست نیاز نیستند (مثل پکیج‌های npm)
+          rm -rf release_package/public_html/api/node_modules
+          rm -f release_package/public_html/api/package.json
+          rm -f release_package/public_html/api/package-lock.json
+          
+          # ۴. ساخت فایل ZIP نهایی و آماده نصب
+          cd release_package
+          zip -r ../jservice-ready-to-deploy.zip ./*
+          
+      - name: 📤 Upload ZIP as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: jservice-final-package
+          path: jservice-ready-to-deploy.zip
+          retention-days: 7
