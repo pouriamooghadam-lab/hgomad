@@ -1,11 +1,7 @@
 name: Build and Package for Shared Host
 
-# این دستور باعث می‌شود هر وقت بخواهید دستی اجرا شود، یا هر وقت تگ جدیدی مثل v1.0 بزنید
 on:
-  workflow_dispatch: 
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch: # اجازه اجرای دستی
 
 jobs:
   build-and-zip:
@@ -15,36 +11,51 @@ jobs:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
         
-      - name: 🟢 Setup Node.js
+      - name: 🟢 Setup Node.js (Version 22 LTS)
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
+          cache: 'npm'
           
-      - name: 📦 Install & Build Frontend
-        run: |
-          npm install
-          npm run build
-          
+      - name: 📦 Install Dependencies
+        run: npm install
+        
+      - name: 🏗️ Build Frontend
+        run: npm run build
+        
       - name: 🗂️ Prepare Deployment Structure
         run: |
-          # ساخت ساختار دقیق پوشه‌ها برای هاست اشتراکی
+          # ساخت پوشه‌های مقصد
           mkdir -p release_package/public_html
           mkdir -p release_package/public_html/api
           
-          # ۱. کپی فایل‌های بیلد شده React (فرانت‌اند) به ریشه
-          cp -r dist/* release_package/public_html/
+          # کپی فایل‌های بیلد شده ری‌اکت (اگر پوشه dist وجود داشته باشد)
+          if [ -d "dist" ]; then
+            cp -r dist/* release_package/public_html/
+            echo "✅ Frontend built and copied successfully."
+          else
+            echo "❌ ERROR: dist folder not found! Build might have failed."
+            ls -la
+            exit 1
+          fi
           
-          # ۲. کپی فایل‌های PHP و دیتابیس (بک‌اند) به پوشه api
-          cp -r jservice/* release_package/public_html/api/
+          # کپی فایل‌های بک‌اند PHP
+          if [ -d "jservice" ]; then
+            cp -r jservice/* release_package/public_html/api/
+            echo "✅ Backend files copied successfully."
+          else
+            echo "⚠️ WARNING: jservice folder not found."
+          fi
           
-          # ۳. حذف فایل‌های اضافی که در هاست نیاز نیستند (مثل پکیج‌های npm)
+          # پاکسازی فایل‌های غیرضروری از پوشه API
           rm -rf release_package/public_html/api/node_modules
           rm -f release_package/public_html/api/package.json
           rm -f release_package/public_html/api/package-lock.json
           
-          # ۴. ساخت فایل ZIP نهایی و آماده نصب
+          # ساخت فایل ZIP نهایی
           cd release_package
           zip -r ../jservice-ready-to-deploy.zip ./*
+          echo "✅ ZIP file created successfully!"
           
       - name: 📤 Upload ZIP as Artifact
         uses: actions/upload-artifact@v4
